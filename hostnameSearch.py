@@ -1,11 +1,17 @@
 import subprocess
 import re
+import sys
 from fuzzywuzzy import process
-
+from workflow.workflow import Workflow
 
 vaultMap = dict()
 
-def vaultLocalRefresh():
+def gethostIds(wf):
+
+    if len(wf.args):
+        query = wf.args[0]
+    else:
+        query = None
 
     vaultRaw = subprocess.check_output('/usr/local/bin/lpass ls', shell=True)
 
@@ -18,6 +24,8 @@ def vaultLocalRefresh():
             except:
                 None
 
+    hostnameLookup(query)
+
 
 def addToLocal(hostname, hostId):
     if hostname not in vaultMap:
@@ -29,24 +37,13 @@ def hostnameLookup(hostname):
     # once it does we have the key for the map and we can get the id.
 
     #topChoice = some user choice always going to be results[X][0] for the index in the list of tuples and then the str and not the length
-    selection = results[0][0]
-    hostId = vaultMap.get(selection)
-    getPassword(hostId)
+    for iterHost in results:
+        wf.add_item(title=iterHost[0],
+                    arg=vaultMap.get(iterHost[0]),
+                    valid=True)
 
+    wf.send_feedback()
 
-def getPassword(hostId):
-    processedInfo = dict()
-    lpShow = '/usr/local/bin/lpass show {}'.format(hostId)
-    rawInfo = subprocess.check_output(lpShow, shell=True)
-    for row in rawInfo.split('\n'):
-        try:
-            if row.split(":")[0] == 'Username' or row.split(":")[0] == 'Password':
-                processedInfo[row.split(":")[0]] = row.split(":")[1]
-        except:
-            None
-    print 'hello'
-
-
-if __name__ == '__main__':
-    vaultLocalRefresh()
-    hostnameLookup('google')
+if __name__ == u"__main__":
+    wf = Workflow()
+    sys.exit(wf.run(gethostIds))
