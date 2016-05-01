@@ -1,10 +1,12 @@
 import subprocess
 import re
 import sys
+from collections import defaultdict
 from fuzzywuzzy import process
 from workflow.workflow import Workflow
 
-vaultMap = dict()
+# vaultMap = dict()
+vaultMap = defaultdict(list)
 
 def gethostIds(wf):
 
@@ -28,8 +30,7 @@ def gethostIds(wf):
 
 
 def addToLocal(hostname, hostId):
-    if hostname not in vaultMap:
-        vaultMap[hostname] = hostId
+    vaultMap[hostname].append(hostId)
 
 def hostnameLookup(hostname):
     results = process.extract(hostname, vaultMap.keys(), limit=5)
@@ -38,9 +39,19 @@ def hostnameLookup(hostname):
 
     #topChoice = some user choice always going to be results[X][0] for the index in the list of tuples and then the str and not the length
     for iterHost in results:
-        wf.add_item(title=iterHost[0],
-                    arg=vaultMap.get(iterHost[0]),
-                    valid=True)
+        for hostId in vaultMap.get(iterHost[0]):
+            lpShow = '/usr/local/bin/lpass show {}'.format(hostId)
+            rawInfo = subprocess.check_output(lpShow, shell=True)
+            username = 'NO USERNAME'
+            url = ''
+            if rawInfo.__contains__('Username') and rawInfo.__contains__('URL'):
+                username = rawInfo.split('\n')[1].split('Username:')[1].strip()
+                url = rawInfo.split('\n')[3].split('URL:')[1].strip()
+            wf.add_item(title=iterHost[0],
+                        subtitle=username+'    '+url,
+                        arg=hostId,
+                        icon='icon.png',
+                        valid=True)
 
     wf.send_feedback()
 
