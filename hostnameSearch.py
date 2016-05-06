@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import subprocess
 import re
 import sys
@@ -48,7 +49,10 @@ def hostnameLookup(hostname):
                 username = rawInfo.split('\n')[1].split('Username:')[1].strip()
                 url = rawInfo.split('\n')[3].split('URL:')[1].strip()
             wf.add_item(title=iterHost[0],
-                        subtitle=username+'    '+url,
+                        subtitle=username+' '+url+' \u2318-Click to copy username; ',
+                         modifier_subtitles={
+                            'cmd': '\u2318-Click to copy username.'
+                        },
                         arg=hostId,
                         icon='icon.png',
                         valid=True)
