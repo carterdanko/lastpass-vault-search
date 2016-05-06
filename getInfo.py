@@ -24,7 +24,7 @@ def parseArguments(wf):
         process.communicate(processedInfo.get('Password').encode('utf-8').strip())
     elif action == 'getUsername':
         process = subprocess.Popen('pbcopy', env={'LANG': 'en_US.UTF-8'}, stdin=subprocess.PIPE)
-        process.communicate(processedInfo.get('Username').encode('utf-8').strip())\
+        process.communicate(processedInfo.get('Username').encode('utf-8').strip())
 
 if __name__ == u"__main__":
     wf = Workflow()
