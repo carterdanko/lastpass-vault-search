@@ -8,6 +8,7 @@ from workflow.workflow import Workflow
 
 # vaultMap = dict()
 vaultMap = defaultdict(list)
+UPDATE_INTERVAL = 3600 * 3
 
 def gethostIds(wf):
 
@@ -15,6 +16,25 @@ def gethostIds(wf):
         query = wf.args[0]
     else:
         query = None
+
+    if query in ('--update', '-U'):
+        wf._items = []
+        wf.add_item(title='Updating Cache Now',
+                    subtitle="Please Wait for completion",
+                    icon='icon.png',
+                    valid=True)
+        updateIdCache()
+        wf._items = []
+        wf.add_item(title='Cache Has Been Updated',
+                    subtitle="Restart Query To Get Results",
+                    icon='icon.png',
+                    valid=True)
+        sendFeedback()
+    else:
+        hostnameLookup(query)
+
+
+def updateIdCache():
 
     vaultRaw = subprocess.check_output('/usr/local/bin/lpass ls', shell=True)
 
@@ -27,20 +47,22 @@ def gethostIds(wf):
             except:
                 None
 
-    hostnameLookup(query)
-
+    wf.cache_data('hostIdList', vaultMap)
 
 def addToLocal(hostname, hostId):
     vaultMap[hostname].append(hostId)
 
 def hostnameLookup(hostname):
-    results = process.extract(hostname, vaultMap.keys(), limit=5)
+    if not wf.cached_data_fresh('hostIdList', max_age=UPDATE_INTERVAL) or wf.cached_data('hostIdList') == None:
+        updateIdCache()
+    localCache = wf.cached_data('hostIdList')
+    results = process.extract(hostname, localCache.keys(), limit=3)
     # spits back the top five results, this will have to be relayed to the workflow and then user selected
     # once it does we have the key for the map and we can get the id.
 
     #topChoice = some user choice always going to be results[X][0] for the index in the list of tuples and then the str and not the length
     for iterHost in results:
-        for hostId in vaultMap.get(iterHost[0]):
+        for hostId in localCache.get(iterHost[0]):
             lpShow = '/usr/local/bin/lpass show {}'.format(hostId)
             rawInfo = subprocess.check_output(lpShow, shell=True)
             username = 'NO USERNAME'
@@ -56,7 +78,9 @@ def hostnameLookup(hostname):
                         arg=hostId,
                         icon='icon.png',
                         valid=True)
+    sendFeedback()
 
+def sendFeedback():
     wf.send_feedback()
 
 if __name__ == u"__main__":
