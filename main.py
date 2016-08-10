@@ -4,8 +4,13 @@ import re
 import sys
 import hostnameSearch
 import usernameSearch
+import os
 from collections import defaultdict
-from fuzzywuzzy import process
+import config_properties
+import urllib
+import requests
+import json
+import sys
 from workflow.workflow import Workflow
 
 vaultHostMap = defaultdict(list)
@@ -15,13 +20,47 @@ wf = Workflow()
 
 def main(wf):
 
-    if len(wf.args):
+    precheck()
+
+
+    if len(wf.args) == 1:
+        query = wf.args[0]
+    elif len(wf.args) > 1:
         lookupBy = wf.args[0]
         query = wf.args[1]
     else:
         query = None
 
-    if query in ('--update', '-U'):
+    if query in ('upgrade'):
+        url = 'https://api.github.com/repos/carterdanko/lastpass-vault-search/releases/latest'
+        currentVersion = float(config_properties.version)
+        response = requests.get(url)
+        if response.ok:
+            jData = json.loads(response.content)
+            releaseVersion = float(jData.get('tag_name'))
+            downloadName= 'MyLastPass_v%s.alfredworkflow' % releaseVersion
+            downloadsDir = os.path.join(os.path.expanduser('~'), 'Downloads',downloadName)
+            if currentVersion < releaseVersion:
+                urllib.urlretrieve("https://github.com/carterdanko/lastpass-vault-search/releases/download/0.5/MyLastPass.alfredworkflow", downloadsDir)
+                wf.add_item(title="New Workflow Downloaded",
+                            subtitle='Find in ~/Downloads/MyLastPass.alfredworkflow',
+                            icon='icon.png',
+                            valid=True)
+                sendFeedback()
+            else:
+                wf.add_item(title="You are currently on the most up to date",
+                            icon='icon.png',
+                            valid=True)
+                sendFeedback()
+        else:
+            wf.add_item(title="API FAILURE",
+                        subtitle='Github api has failed, check status',
+                        icon='icon.png',
+                        valid=True)
+            sendFeedback()
+        sys.exit(0)
+
+    if query in ('--updateCache', '-U'):
         wf._items = []
         wf.add_item(title='Updating Cache Now',
                     subtitle="Please Wait for completion",
@@ -34,12 +73,24 @@ def main(wf):
                     icon='icon.png',
                     valid=True)
         sendFeedback()
+        sys.exit(0)
     else:
         if lookupBy=='hostname':
             hostnameSearch.hostnameLookup(query)
         elif lookupBy=='username':
             usernameSearch.usernameLookup(query)
 
+
+def precheck():
+    try:
+        subprocess.check_output('/usr/local/bin/lpass status', shell=True)
+    except:
+        wf.add_item(title='You are not logged into lpass-cli',
+                    subtitle="Please login through the terminal to continue",
+                    icon='icon.png',
+                    valid=True)
+        sendFeedback()
+        sys.exit(0)
 
 def updateCaches():
     vaultRaw = subprocess.check_output('/usr/local/bin/lpass ls -l', shell=True)

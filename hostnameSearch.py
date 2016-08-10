@@ -28,7 +28,10 @@ def hostnameLookup(hostname):
 
 
 def fuzzyMatch(results, hostname):
-    localCache = wf.cached_data('hostIdList')
+    try:
+        localCache = wf.cached_data('hostIdList')
+    except:
+        fuzzyMatch(results, hostname)
     for badvariablename in results:
         info=localCache.get(badvariablename[0])
         hostId=info[0][0]
