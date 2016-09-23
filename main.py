@@ -24,8 +24,9 @@ wf = Workflow()
 
 
 class VersionMismatch(Exception):
-    def __init__(self, lpass_version, required_min_version):
-        Exception.__init__(self, "Found LastPass CLI Version {0}, Min Required Version {1}".format(lpass_version, required_min_version))
+    def __init__(self, installed_lpass_version, required_min_version):
+        Exception.__init__(self, "Found LastPass CLI Version {0}, Min Required Version {1}".format(
+            installed_lpass_version, required_min_version))
 
 
 def main(wf):
@@ -92,12 +93,12 @@ def main(wf):
 
 def precheck():
     try:
-        actual_lpass_version = subprocess.check_output('/usr/local/bin/lpass --version', shell=True)
+        installed_lpass_version = subprocess.check_output('/usr/local/bin/lpass --version', shell=True)
         required_min_version = config_properties.lpass
-        lpass_version = re.search(r'([\d.]*\d+)', actual_lpass_version)
-        lpass_version = lpass_version.group()
-        if StrictVersion(lpass_version) < StrictVersion(required_min_version):
-            raise VersionMismatch(lpass_version, required_min_version)
+        installed_lpass_version = re.search(r'([\d.]*\d+)', installed_lpass_version)
+        installed_lpass_version = installed_lpass_version.group()
+        if StrictVersion(installed_lpass_version) < StrictVersion(required_min_version):
+            raise VersionMismatch(installed_lpass_version, required_min_version)
     except CalledProcessError:
         wf.add_item(title='Unable to read output from lpass --version',
                         subtitle="You probably need to upgrade your last pass cli",
