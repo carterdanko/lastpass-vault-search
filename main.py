@@ -1,20 +1,32 @@
 from __future__ import unicode_literals
+from collections import defaultdict
+from distutils.version import StrictVersion
+import json
+import os
+import re
 import subprocess
+from subprocess import CalledProcessError
+import sys
+import urllib
+
+import requests
+
+import config_properties
 import hostnameSearch
 import usernameSearch
-import os
-from collections import defaultdict
-import config_properties
-import urllib
-import requests
-import json
-import sys
 from workflow.workflow import Workflow
+
 
 vaultHostMap = defaultdict(list)
 vaultUsernameMap = defaultdict(list)
 UPDATE_INTERVAL = 3600 * 3
 wf = Workflow()
+
+
+class VersionMismatch(Exception):
+    def __init__(self, installed_lpass_version, required_min_version):
+        Exception.__init__(self, "Found LastPass CLI Version {0}, Min Required Version {1}".format(
+            installed_lpass_version, required_min_version))
 
 
 def main(wf):
@@ -81,8 +93,23 @@ def main(wf):
 
 def precheck():
     try:
+        installed_lpass_version = subprocess.check_output('/usr/local/bin/lpass --version', shell=True)
+        required_min_version = config_properties.lpass
+        installed_lpass_version = re.search(r'([\d.]*\d+)', installed_lpass_version)
+        installed_lpass_version = installed_lpass_version.group()
+        if StrictVersion(installed_lpass_version) < StrictVersion(required_min_version):
+            raise VersionMismatch(installed_lpass_version, required_min_version)
+    except CalledProcessError:
+        wf.add_item(title='Unable to read output from lpass --version',
+                        subtitle="You probably need to upgrade your last pass cli",
+                        icon='icon.png',
+                        valid=True)
+        send_feedback()
+        sys.exit(0)
+
+    try:
         subprocess.check_output('/usr/local/bin/lpass status', shell=True)
-    except Exception as e:
+    except CalledProcessError:
         wf.add_item(title='You are not logged into lpass-cli',
                     subtitle="Please login through the terminal to continue",
                     icon='icon.png',
