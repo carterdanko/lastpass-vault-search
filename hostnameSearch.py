@@ -6,7 +6,7 @@ from workflow.workflow import Workflow
 import time
 
 vault_map = defaultdict(list)
-UPDATE_INTERVAL = 3600 * 3
+UPDATE_INTERVAL = 43200
 wf = Workflow()
 
 
