@@ -3,32 +3,33 @@ import main
 from collections import defaultdict
 from fuzzywuzzy import process
 from workflow.workflow import Workflow
+import time
 
 vault_map = defaultdict(list)
-UPDATE_INTERVAL = 3600 * 3
+UPDATE_INTERVAL = 43200
 wf = Workflow()
 
 
 def hostname_lookup(hostname):
-    local_cache = wf.cached_data('hostIdList')
-    if not wf.cached_data_fresh('hostIdList', max_age=UPDATE_INTERVAL) or wf.cached_data('hostIdList') is None:
+
+    if wf.cached_data('hostIdList', max_age=UPDATE_INTERVAL) is None:
         main.update_caches()
+
+    local_cache = wf.cached_data('hostIdList')
+    while len(local_cache) < 1:
+        time.sleep(1)
     match_found = local_cache.get(str(hostname))
+
     if match_found <= 1:
         results = process.extract(hostname, local_cache.keys(), limit=3)
-        fuzzy_match(results, hostname)
+        fuzzy_match(results, local_cache)
     else:
         exact_match(match_found, hostname)
     # spits back the top five results, this will have to be relayed to the workflow and then user selected
     # once it does we have the key for the map and we can get the id.
 
 
-def fuzzy_match(results, hostname):
-    try:
-        local_cache = wf.cached_data('hostIdList')
-    except:
-        fuzzy_match(results, hostname)
-
+def fuzzy_match(results, local_cache):
     for bad_variable_name in results:
         info = local_cache.get(bad_variable_name[0])
         host_id = info[0][0]
