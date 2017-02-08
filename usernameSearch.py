@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-import main
+import vault_search
 from fuzzywuzzy import process
 from workflow.workflow import Workflow
 
@@ -10,7 +10,7 @@ localCache = wf.cached_data('usernameList')
 
 def username_lookup(username):
     if not wf.cached_data_fresh('usernameList', max_age=UPDATE_INTERVAL) or wf.cached_data('hostIdList') is None:
-        main.update_caches()
+        vault_search.update_caches()
     match_found = localCache.get(str(username))
     if match_found < 1:
         results = process.extract(username, localCache.keys(), limit=3)

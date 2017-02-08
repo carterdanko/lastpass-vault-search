@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-import main
+import vault_search
 from collections import defaultdict
 from fuzzywuzzy import process
 from workflow.workflow import Workflow
@@ -12,7 +12,7 @@ wf = Workflow()
 def hostname_lookup(hostname):
     local_cache = wf.cached_data('hostIdList')
     if not wf.cached_data_fresh('hostIdList', max_age=UPDATE_INTERVAL) or wf.cached_data('hostIdList') is None:
-        main.update_caches()
+        vault_search.update_caches()
     match_found = local_cache.get(str(hostname))
     if match_found <= 1:
         results = process.extract(hostname, local_cache.keys(), limit=3)
