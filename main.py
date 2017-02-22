@@ -11,7 +11,7 @@ import urllib
 
 import requests
 
-import config_properties
+from config_properties import configs
 import hostnameSearch
 import usernameSearch
 from workflow.workflow import Workflow
@@ -19,7 +19,6 @@ from workflow.workflow import Workflow
 
 vaultHostMap = defaultdict(list)
 vaultUsernameMap = defaultdict(list)
-UPDATE_INTERVAL = 3600 * 3
 wf = Workflow()
 
 
@@ -42,7 +41,7 @@ def main(wf):
 
     if 'upgrade' in query:
         url = 'https://api.github.com/repos/carterdanko/lastpass-vault-search/releases/latest'
-        current_version = float(config_properties.version)
+        current_version = float(configs.get('version'))
         response = requests.get(url)
         if response.ok:
             j_data = json.loads(response.content)
@@ -94,7 +93,7 @@ def main(wf):
 def precheck():
     try:
         installed_lpass_version = subprocess.check_output('/usr/local/bin/lpass --version', shell=True)
-        required_min_version = config_properties.lpass
+        required_min_version = configs.get('lpass')
         installed_lpass_version = re.search(r'([\d.]*\d+)', installed_lpass_version)
         installed_lpass_version = installed_lpass_version.group()
         if StrictVersion(installed_lpass_version) < StrictVersion(required_min_version):
