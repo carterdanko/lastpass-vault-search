@@ -9,6 +9,10 @@ def parse_arguments(wf):
     else:
         vault_id = None
 
+    if vault_id == "lpass-cli_login":
+        subprocess.check_output('/usr/bin/osascript TerminalLoginLaunch', shell=True)
+        sys.exit(1)
+
     processed_info = dict()
     lp_show = '/usr/local/bin/lpass show {}'.format(vault_id)
     raw_info = subprocess.check_output(lp_show, shell=True)
