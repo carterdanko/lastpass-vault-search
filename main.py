@@ -110,8 +110,9 @@ def precheck():
         subprocess.check_output('/usr/local/bin/lpass status', shell=True)
     except CalledProcessError:
         wf.add_item(title='You are not logged into lpass-cli',
-                    subtitle="Please login through the terminal to continue",
+                    subtitle="Press Enter to open terminal to login",
                     icon='icon.png',
+                    arg="lpass-cli_login",
                     valid=True)
         send_feedback()
         sys.exit(0)

@@ -1,0 +1,7 @@
+tell application "Terminal"
+    activate
+    delay 1
+    tell application "System Events"
+        keystroke "lpass login "
+    end tell
+end tell
