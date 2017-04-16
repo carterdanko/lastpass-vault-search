@@ -8,6 +8,7 @@ import subprocess
 from subprocess import CalledProcessError
 import sys
 import urllib
+from distutils.version import StrictVersion
 
 import requests
 
@@ -41,11 +42,11 @@ def main(wf):
 
     if 'upgrade' in query:
         url = 'https://api.github.com/repos/carterdanko/lastpass-vault-search/releases/latest'
-        current_version = float(configs.get('version'))
+        current_version = StrictVersion(configs.get('version'))
         response = requests.get(url)
         if response.ok:
             j_data = json.loads(response.content)
-            release_version = float(j_data.get('tag_name'))
+            release_version = StrictVersion(j_data.get('tag_name'))
             download_name = 'MyLastPass_v{}.alfredworkflow'.format(release_version)
             downloads_dir = os.path.join(os.path.expanduser('~'), 'Downloads', download_name)
             if current_version < release_version:
