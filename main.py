@@ -8,7 +8,6 @@ import subprocess
 from subprocess import CalledProcessError
 import sys
 import urllib
-from distutils.version import StrictVersion
 
 import requests
 
