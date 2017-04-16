@@ -18,8 +18,10 @@ def parse_arguments(wf):
     raw_info = subprocess.check_output(lp_show, shell=True)
     for row in raw_info.split('\n'):
         try:
-            if row.split(":")[0] == 'Username' or row.split(":")[0] == 'Password':
-                processed_info[row.split(":")[0]] = row.split(":")[1]
+            if "Username:" in row:
+                processed_info["Username"] = row.split("Username:")[1].strip()
+            elif "Password" in row:
+                processed_info["Password"] = row.split("Password:")[1].strip()
         except:
             None
 
