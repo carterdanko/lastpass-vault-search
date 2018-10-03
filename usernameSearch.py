@@ -26,7 +26,6 @@ def fuzzy_match(results, username):
     for bad_variable_name in results:
         info = localCache.get(bad_variable_name[0])
         host_id = info[0][0]
-        hostname = info[0][1]
         wf.add_item(title=bad_variable_name[0],
                     subtitle=username + ' ' + ' \u2318-Click to copy username; ',
                     modifier_subtitles={
