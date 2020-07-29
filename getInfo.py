@@ -4,10 +4,11 @@ from workflow import Workflow
 
 
 def parse_arguments(wf):
+    vault_id = None
+    action = None
+
     if wf.args:
         action, vault_id = wf.args
-    else:
-        vault_id = None
 
     if vault_id == "lpass-cli_login":
         subprocess.check_output('/usr/bin/osascript TerminalLoginLaunch', shell=True)
@@ -31,6 +32,7 @@ def parse_arguments(wf):
     elif action == 'getUsername':
         process = subprocess.Popen('pbcopy', env={'LANG': 'en_US.UTF-8'}, stdin=subprocess.PIPE)
         process.communicate(processed_info.get('Username').encode('utf-8').strip())
+
 
 if __name__ == u"__main__":
     wf = Workflow()

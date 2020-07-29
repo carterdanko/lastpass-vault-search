@@ -30,7 +30,7 @@ class VersionMismatch(Exception):
 
 
 def main(wf):
-
+    lookup_by = None
     precheck()
 
     if len(wf.args) == 1:
@@ -147,6 +147,7 @@ def add_to_username_cache(hostname, host_id, username):
 
 def send_feedback():
     wf.send_feedback()
+
 
 if __name__ == u"__main__":
     sys.exit(wf.run(main))
